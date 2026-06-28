@@ -1,0 +1,54 @@
+﻿                  <div className=grid grid-cols-1 md:grid-cols-2 gap-6>
+                    <div className=space-y-2>
+                      <label className=text-[10px] text-[#1a1a1a] uppercase font-black tracking-[0.3em] px-1>Target Batches (Years)</label>
+                      <div className=flex flex-wrap gap-2 mt-2>
+                        {academicYears.map(y => (
+                          <button
+                            key={y.id}
+                            type=button
+                            onClick={() => {
+                              const current = zoomYearIds || [];
+                              let updated;
+                              if (current.includes(y.id)) {
+                                updated = current.filter(id => id !== y.id);
+                              } else {
+                                updated = [...current, y.id];
+                              }
+                              setZoomYearIds(updated);
+                              localStorage.setItem('defaultYearIds', JSON.stringify(updated));
+                              setNewLesson({...newLesson, yearIds: updated});
+                            }}
+                            className={px-3 py-1.5 rounded-lg text-xs font-bold border transition-all }
+                          >
+                            {y.year}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className=space-y-2>
+                      <label className=text-[10px] text-[#1a1a1a] uppercase font-black tracking-[0.3em] px-1>Target Class Types</label>
+                      <div className=flex flex-wrap gap-2 mt-2>
+                        {classTypes.map(c => (
+                          <button
+                            key={c.id}
+                            type=button
+                            onClick={() => {
+                              const current = zoomClassTypes || [];
+                              let updated;
+                              if (current.includes(c.name)) {
+                                updated = current.filter(name => name !== c.name);
+                              } else {
+                                updated = [...current, c.name];
+                              }
+                              setZoomClassTypes(updated);
+                              localStorage.setItem('defaultClassTypes', JSON.stringify(updated));
+                              setNewLesson({...newLesson, classTypes: updated});
+                            }}
+                            className={px-3 py-1.5 rounded-lg text-xs font-bold border transition-all }
+                          >
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>

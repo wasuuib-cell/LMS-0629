@@ -1,0 +1,258 @@
+
+export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) => {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [homePreviewMode, setHomePreviewMode] = useState<boolean>(false);
+  const [showZoomModal, setShowZoomModal] = useState(false);
+  const [zoomMessage, setZoomMessage] = useState('');
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [onlineClasses, setOnlineClasses] = useState<OnlineClass[]>([]);
+  const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [paperResults, setPaperResults] = useState<PaperResult[]>([]);
+  const [authorizedAdmins, setAuthorizedAdmins] = useState<any[]>([]);
+  const [priUsers, setPriUsers] = useState<any[]>([]);
+  const [newPriEmail, setNewPriEmail] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState<{type: 'thumbnail' | 'image' | null, loading: boolean}>({type: null, loading: false});
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [courseCombos, setCourseCombos] = useState<CourseCombo[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [backupProgress, setBackupProgress] = useState({ current: 0, total: 0, status: '' });
+  const [backupMonth, setBackupMonth] = useState('');
+  const [newCourse, setNewCourse] = useState({ name: '', fee: 0, yearId: '' });
+  const [newCombo, setNewCombo] = useState({ comboFee: 0, classTypes: [] as string[], yearId: '' });
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editingCombo, setEditingCombo] = useState<CourseCombo | null>(null);
+
+  useEffect(() => {
+    const unsubPri = onSnapshot(collection(db, 'authorizedPri'), (snapshot) => {
+      setPriUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsubPri();
+  }, []);
+
+  const handleAddPriUser = async () => {
+    if (!newPriEmail) return;
+    try {
+      const email = newPriEmail.toLowerCase().trim();
+      await setDoc(doc(db, 'authorizedPri', email), {
+        email,
+        createdAt: serverTimestamp()
+      });
+      setNewPriEmail('');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'authorizedPri');
+    }
+  };
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [classTypes, setclassTypes] = useState<ClassType[]>([]);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [marksFilterYear, setMarksFilterYear] = useState<string>('all');
+  const [marksFilterPaper, setMarksFilterPaper] = useState<number | 'all'>('all');
+  const [overviewBatchId, setOverviewBatchId] = useState<string>('all');
+
+  const [topicMode, setTopicMode] = useState<'new' | 'existing'>('existing');
+  
+  // Form states
+  const [newLesson, setNewLesson] = useState<{
+    topic: string;
+    subTopic: string;
+    videoUrl: string;
+    videoType: 'drive' | 'youtube';
+    visibility: 'private' | 'unlisted';
+    thumbnailUrl: string;
+    imageUrl: string;
+    yearIds: string[];
+    classTypes: string[];
+    isSafeZone: boolean;
+  }>({ 
+    topic: '', 
+    subTopic: '', 
+    videoUrl: '', 
+    videoType: 'youtube', 
+    visibility: 'private',
+    thumbnailUrl: '', 
+    imageUrl: '', 
+    yearIds: [],
+    classTypes: [],
+    isSafeZone: true
+  });
+  const [newClass, setNewClass] = useState({ title: '', link: '', type: 'zoom' as const, yearId: '', courseId: '' });
+  const [newStudent, setNewStudent] = useState({ name: '', email: '', class: '', whatsapp: '', address: '', studentId: '', school: '', nic: '', yearId: '' });
+  const [newPaperResult, setNewPaperResult] = useState({ paperNumber: 1, studentIndex: '', marks: 0, yearId: '' });
+  const [newYear, setNewYear] = useState({ year: '' });
+  const [newClassType, setNewClassType] = useState({ name: '', shortName: '' });
+  const [newRecording, setNewRecording] = useState<{
+    title: string;
+    videoUrl: string;
+    visibility: 'private' | 'unlisted';
+    courseId: string;
+    isSafeZone: boolean;
+    publishDate: string;
+    yearId: string;
+  }>({
+    title: '', videoUrl: '', visibility: 'private', courseId: '', isSafeZone: true, publishDate: new Date().toISOString().slice(0, 10), yearId: ''
+  });
+  
+  const [assignBatchModal, setAssignBatchModal] = useState<{ isOpen: boolean, topic: string, yearIds: string[], classTypes: string[] }>({ isOpen: false, topic: '', yearIds: [], classTypes: [] });
+
+  const [selectedRecordingYear, setSelectedRecordingYear] = useState<string>('all');
+  const [newAuthAdmin, setNewAuthAdmin] = useState({ email: '', password: '' });
+  const [newPriUser, setNewPriUser] = useState({ email: '', name: '' });
+  const [editingStudent, setEditingStudent] = useState<StudentRecord | null>(null);
+  const [studentSearch, setStudentSearch] = useState('');
+
+  // Home states
+  const [homeContent, setHomeContent] = useState<HomeContent>({ 
+    teacherName: 'Chathuranaga Bandara', 
+    teacherMethodology: 'ලංකාවේ ඉහළම ප්‍රතිඵල සහිත Bio පන්තිය.', 
+    teacherImageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2670&auto=format&fit=crop',
+    teacherHeroUrl: 'https://images.unsplash.com/photo-1603126019936-f9b6d9a563bb?q=80&w=2670&auto=format&fit=crop',
+    teacherAboutUrl: 'https://images.unsplash.com/photo-1581093458791-9f3c3250bb8b?q=80&w=2574&auto=format&fit=crop',
+    aboutTitle: 'About Us',
+    aboutSubtitle: 'Chathuranaga Bandara',
+    aboutRichText: `<p>පන්ති ආරම්භ කර වසර 4ක් ගතවන විට දිවයිනේ මුළු Bio A සාමර්ථ ගණනින් 10න් 1ක් අප පන්තිය සතු විය. ඊළඟ වසර වන විට එය 6න් 1ක් දක්වා වැඩි විය. මෙම වසරේ එය 4න් 1ක් දක්වා වැඩිවිය. ඒ දිස්ත්‍රික් මුල් 20 තුළ සිසුන් 126 කට වැඩි ප්‍රමාණයක් සමඟය.</p><p>මෙය ලංකා ඉතිහාසයේ පළමු වසර 6 තුළ පන්තියක් වාර්ථා කළ වැඩිම ප්‍රතිඵල සමූහය යන්න අවිවාදිතය. සෑබෑ කරුණ නම්, වසර 6ක් නොව කොපමණ කාලයක් පන්ති කළ ද මෙම මට්ටමේ ප්‍රතිඵල නිර්මාණය කළ කිසිදු පන්තියක් දිවයිනේ පැවතී නැත.</p><p>අප මේ අභිභවා යන්නේ ඉතිහාසයේ කිසිවෙකුත් ආසන්නයටවත් ගමන් නොකළ සීමාවන් ය. එය ද අපගේ හයවන කණ්ඩායම (2024 A/L) වනවිට ය ..</p>`,
+    aboutCtaText: 'Join Now',
+    aboutCtaUrl: '/lms',
+    
+    processTitle: 'Our Successful',
+    processSubtitle: 'Work Process',
+    processSteps: [
+      { id: '1', title: 'නිවැරැදි විෂය කරුණු', description: 'විෂය නිර්දේශය ආවරණය වන නිවැරදි විෂය කරුණු සම්පිණ්ඩණය කර සිසුන්ට ඉගැන්වීම', icon: 'BookOpen' },
+      { id: '2', title: 'විෂයානුබද්ධ ක්‍රියාකාරකම්', description: 'විෂය කරුණු මතක තබා ගැනීම පහසු කිරීම උදෙසා සුවිශේෂ ක්‍රමවේද සතිපතා සිදුකිරීම', icon: 'Lightbulb' },
+      { id: '3', title: 'විශේෂ ප්‍රශ්න පත්‍ර', description: 'සුවිශේෂ ප්‍රශ්න පත්‍ර මඟින් සිසුන් දැනුමින් සහ අත්දැකීම් මඟින් උසස් පෙළ විභාගයට සූදානම් කරවීම', icon: 'FileText' },
+      { id: '4', title: 'නිවැරදි කාල රාමුව', description: 'විෂය කරුණු පන්තිය තුළ දීම අවධාරණය කිරීමෙන් නිවැරැදි කාල රාමුවක් තුළ සිසුන් මෙහෙයවීම', icon: 'CalendarCheck' },
+      { id: '5', title: 'විශිෂ්ටතම ප්‍රතිඵල', description: 'අවසන් ප්‍රතිඵලක් ලෙස සිසුන්ට විශිෂ්ටතම ප්‍රතිඵලයක් ලබාගැනීම සඳහා මඟපෙන්වීම', icon: 'CheckCircle2' }
+    ],
+
+    specialTitle: 'Special Programs',
+    specialSubtitle: 'The final Paper Class',
+    specialDesc: 'A/L PAPER එකට පස්සේ ලංකාවේ වැඩිම ළමයි ප්‍රමාණයක් එකපාර ලියන Bio PAPER එක. විශේෂ ප්‍රශ්න, පෙරහුරු ප්‍රශ්න සමගින් සිසුන්ගේ විෂය පිළිබඳව හැකියාව වැඩි දියුණු කරමින් විභාගය සඳහා සූදානම් කරවනු ලබයි',
+    specialFeatures: [
+      { id: 'f1', title: 'මධ්‍යස්ථාන 42ක්', description: 'දිවයින පුරා මධ්‍යස්ථාන 42 දී සිසුන්ට ප්‍රශ්න පත්‍රය සඳහා භෞතිකව සහභාගි වීමේ හැකියාව ඇත.', icon: 'MapPin' },
+      { id: 'f2', title: 'වැඩිම Rank ලිස්ට් එක', description: 'උසස් පෙළ විභාගයට පසුව විශාලතම සිසුන් පිරිසකට එකවර ලකුණු ලබාදී ශ්රේණිගත කිරීම් සිදුකරන එකම Bio පන්තිය.', icon: 'Users' },
+      { id: 'f3', title: 'ප්‍රගති සමාලෝචනය', description: 'නව තාක්ෂණික ක්‍රමවේදයන් ඔස්සේ සිසුන්ගේ පසුගිය ප්‍රශ්න පත්‍ර වල ලකුණු අධ්‍යයනය කර සිසුන්ගේ ප්‍රගතිය වාර්තාවක් වෙබ්අඩවිය හරහා ලබා ගත හැකි වීම', icon: 'BarChart3' },
+      { id: 'f4', title: 'ලකුණු විශ්ලේෂණය', description: 'සෑම සිසුවෙකුටම ලකුණු පිළිබඳව ප්‍රශ්න පත්‍ර පරීක්ෂක සමඟ සම්බන්ධ වී වාර්තාවක් ලබාගත හැකි වීම, තම අඩුපාඩු ඔවුන් සමඟ සාකච්ඡා කළ හැකි වීම', icon: 'Clock' }
+    ],
+
+    telegramTitle: 'Bio',
+    telegramSubtitle: 'Our Telegram Channels',
+    telegramChannels: [
+      { id: 't1', name: '2028 Theory', url: 'https://t.me/CHEM28T', imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2670&auto=format&fit=crop' },
+      { id: 't2', name: '2026 Revision', url: 'https://t.me/chem_26R', imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2670&auto=format&fit=crop' },
+      { id: 't3', name: '2026 Theory', url: 'https://t.me/chem26Th', imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2670&auto=format&fit=crop' },
+      { id: 't4', name: '2027 Theory', url: 'https://t.me/CHEM_27T', imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2670&auto=format&fit=crop' }
+    ],
+
+    teacherBioTitle: 'ගුරුවරයා පිළිබඳව,',
+    teacherBioText: `2017 උසස් පෙළ ජීව විද්‍යා අංශයෙන් දිවයිනේ 4 වන ස්ථානයට (කොළඹ දිස්ත්‍රික් 2) සමත්ව මේ වන විට කොළඹ වෛද්‍ය පීඨයේ සිය උපාධිය අවසන් කරමින් සිටියි. 2019 දී උපකාරක පන්ති ක්ෂේත්‍රයට පිවිසෙන ඔහු වසර 4ක් යන්නටත් පෙර (වයස අවුරුදු 24ක වන විට) දිවයිනේ එදා මෙදා තුර සමස්ථ ටියුෂන් ඉතිහාසයේම වැඩිම සිසුන් පිරිසක් සහභාගි වන ජීව විද්‍යාව පන්තිය නිර්මාණය කරන්නේ, යල්පැනගිය ක්‍රමවේදයන් වෙනුවට වසර කිහිපයකට ඉහත දී තමා විසින්ම අනුගමනය කළ අතිසාර්ථක ක්‍රමවේදයන් පන්තියේ වැඩ පිළිවෙළට මුසු කරමින් අවවාදයට එහා ගිය ආදර්ශයක් මත සිසුන් විභාගයට සූදානම් කරවීම සහ විෂයන් 3ටම අදාළ නිවැරදි මගපෙන්වීම හේතුවෙන් වේ.\n\nසිය පළමු පන්තියෙන්ම ගම්පහ දිස්ත්‍රික්කයේ ප්‍රථමයා (දිවයිනේ 9) ද දෙවන පන්තියෙන් දිවයිනේ 2, 4 ඇතුළුව දිස්ත්‍රික් ප්‍රථමයන් 2ක් දෙවැනියන් 3ක් සහ තෙවනියෙක් නිර්මාණය වන්නේ ද ඉහත කී හේතුව සහ ගුරුවරයා සතු සහජයෙන් ලද විෂය කරුණු පැහැදිලි කිරීමේ හැකියාව හේතුවෙන් වේ.`,
+    teacherVideoUrl: 'https://youtu.be/7XrbdDzD7V8',
+    teacherVideoThumbnail: 'https://images.unsplash.com/photo-1532187875620-1e4334f6eee9?q=80&w=2670&auto=format&fit=crop',
+
+    heroSlides: [
+       { id: 's1', title: 'Bio Highest Results', subtitle: 'Journey of Excellence', imageUrl: '/1.avif', ctaText: 'Explore Our Journey', ctaUrl: '/lms' },
+       { id: 's2', title: 'විශිෂ්ටතම Bio පන්තිය', subtitle: 'අද ලංකාවේ', imageUrl: '/2.avif' },
+       { id: 's3', title: 'Bio පන්තිය', subtitle: 'දිවයිනේ වැඩිම සිසුන් පිරිසක්', imageUrl: '/3.avif' }
+    ],
+
+    contactTitle: 'Contact Us',
+    contactSubtitle: 'පහත සඳහන් ආකාර මගින් ඔබට අප හා සම්බන්ධ විය හැක',
+    contactAddress: 'No: 160, Rajagiriya.',
+    contactPhone: '070 123 4567',
+    contactEmail: 'info@bwithb.lk',
+    contactWorkingHours: 'Mon-Sat: 8am-5pm',
+
+    facebookUrl: '',
+    youtubeUrl: '',
+    whatsappUrl: '',
+    instagramUrl: '',
+    linkedinUrl: '#',
+    allowedDomain: typeof window !== 'undefined' ? window.location.origin : ''
+  });
+  const [homePosts, setHomePosts] = useState<HomePost[]>([]);
+  const [homeVideos, setHomeVideos] = useState<HomeVideo[]>([]);
+  const [newHomePost, setNewHomePost] = useState<{ title: string, description: string, imageUrl: string, imageUrls?: string[] }>({ title: '', description: '', imageUrl: '' });
+  const [newHomeVideo, setNewHomeVideo] = useState({ title: '', videoUrl: '' });
+  
+  // Temp states for home builder
+  const [newSlide, setNewSlide] = useState({ title: '', subtitle: '', imageUrl: '', ctaText: '', ctaUrl: '', titleFontSize: 10, titleFontSizeMobile: 4 });
+  const [newProcessStep, setNewProcessStep] = useState({ title: '', description: '', icon: 'BookOpen' });
+  const [newFeature, setNewFeature] = useState({ title: '', description: '', icon: 'Play' });
+  const [newTelegram, setNewTelegram] = useState({ name: '', url: '', imageUrl: '' });
+
+  // Local Hero Slides fallback
+  const LOCAL_SLIDES = [
+    { imageUrl: '/1.avif' },
+    { imageUrl: '/2.avif' },
+    { imageUrl: '/3.avif' }
+  ];
+
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  
+  const [youtubeSettings, setYoutubeSettings] = useState<YouTubeSettings | null>(null);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [isSyncingYouTube, setIsSyncingYouTube] = useState(false);
+
+  useEffect(() => {
+    const unsubLessons = onSnapshot(collection(db, 'lessons'), (snap) => {
+      setLessons(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lesson)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'lessons'));
+
+    const unsubClasses = onSnapshot(collection(db, 'onlineClasses'), (snap) => {
+      setOnlineClasses(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as OnlineClass)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'onlineClasses'));
+
+    const unsubStudents = onSnapshot(collection(db, 'students'), (snap) => {
+      const studentData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentRecord));
+      // Sort by registration date descending (newest first)
+      const sortedStudents = studentData.sort((a, b) => {
+        const dateA = (a.registeredAt as any)?.toDate?.()?.getTime() || new Date(a.registeredAt as any || 0).getTime();
+        const dateB = (b.registeredAt as any)?.toDate?.()?.getTime() || new Date(b.registeredAt as any || 0).getTime();
+        return dateB - dateA;
+      });
+      setStudents(sortedStudents);
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'students'));
+
+    const unsubHomeContent = onSnapshot(doc(db, 'home_content', 'main'), (snap) => {
+      if (snap.exists()) setHomeContent(snap.data() as HomeContent);
+    });
+
+    const unsubHomePosts = onSnapshot(collection(db, 'home_posts'), (snap) => {
+      setHomePosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as HomePost)));
+    });
+
+    const unsubHomeVideos = onSnapshot(collection(db, 'home_videos'), (snap) => {
+      setHomeVideos(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as HomeVideo)));
+    });
+
+    const unsubAuthAdmins = onSnapshot(collection(db, 'authorizedAdmins'), (snap) => {
+      setAuthorizedAdmins(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => {
+      console.warn("Permission denied reading authorizedAdmins. You may need to log in via General Login first.");
+    });
+
+    const unsubPaperResults = onSnapshot(collection(db, 'paperResults'), (snap) => {
+      setPaperResults(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaperResult)));
+    });
+
+    const unsubAcademicYears = onSnapshot(collection(db, 'academicYears'), (snap) => {
+      setAcademicYears(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AcademicYear)));
+    });
+    
+    const unsubclassTypes = onSnapshot(collection(db, 'classTypes'), (snap) => {
+      setclassTypes(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassType)));
+    });
+
+    const unsubRecordings = onSnapshot(collection(db, 'recordings'), (snap) => {
+      setRecordings(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Recording)));
+    });
+    
+    const unsubYouTubeSettings = onSnapshot(doc(db, 'settings', 'youtube'), (snap) => {
+      if (snap.exists()) setYoutubeSettings(snap.data() as YouTubeSettings);
+    });
+
+    const unsubPaymentSettings = onSnapshot(doc(db, 'settings', 'payments'), (snap) => {
+      if (snap.exists()) setPaymentSettings(snap.data() as PaymentSettings);
+    }, (error) => {

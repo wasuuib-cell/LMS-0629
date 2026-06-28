@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // 1. Users Collection
+    // Users can read/write their own document. Admins have full access.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+    
+    // 2. Students Collection
+    // Students can create their profile. They can read/update their own data. Admins have full access.
+    match /students/{studentId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && (request.auth.uid == resource.data.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // 3. Payments and Book Orders
+    // Students can create a payment slip and read their own slips. Admins can review/update them.
+    match /payments/{paymentId} {
+      allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.studentId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+    
+    // 4. Educational Content & Public Data
+    // Anyone (or authenticated users) can read, but ONLY Admins can write (add/edit/delete).
+    match /academicYears/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /classTypes/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /courses/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /courseCombos/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /books/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /home_posts/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /home_videos/{docId} { allow read: if true; allow write: if isAdmin(); }
+    
+    // Lessons, Classes, Recordings: Must be logged in to view, only admin can write.
+    match /lessons/{docId} { allow read: if request.auth != null; allow write: if isAdmin(); }
+    match /onlineClasses/{docId} { allow read: if request.auth != null; allow write: if isAdmin(); }
+    match /recordings/{docId} { allow read: if request.auth != null; allow write: if isAdmin(); }
+    
+    // Paper Results
+    // Only admins can upload marks. Students can view their marks.
+    match /paperResults/{docId} { 
+      allow read: if request.auth != null; // Ideally restrict to resource.data.uid == request.auth.uid
+      allow write: if isAdmin(); 
+    }
+    
+    // 5. Authorized Emails for Admin/Primary Login
+    // Users can read their own email check during login. Admins can manage them.
+    match /authorizedAdmins/{emailId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    match /authorizedPri/{emailId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}

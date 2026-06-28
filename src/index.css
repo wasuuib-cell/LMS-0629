@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Serif+Sinhala:wght@400;700;900&family=Abhaya+Libre:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #ef4444;
+  --color-primary-dark: #dc2626;
+  --color-primary-light: #fca5a5;
+  --color-accent: #b91c1c;
+  --color-accent-dark: #991b1b;
+  
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sinhala: "Abhaya Libre", "Noto Serif Sinhala", serif;
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-text-main: var(--text-main);
+  --color-border: var(--border);
+
+  @keyframes liquid-drift {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-5px) scale(1.02); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  @keyframes gradient-x {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+.animate-liquid {
+  animation: liquid-drift 4s ease-in-out infinite;
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
+}
+
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --text-main: #1a1a1a;
+  --border: rgba(239, 68, 68, 0.1);
+  --accent: #ef4444;
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--text-main);
+    @apply antialiased selection:bg-accent/30 selection:text-slate-900 transition-colors duration-500;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-tighter uppercase italic text-text-main transition-colors duration-500;
+  }
+}
+
+.font-sinhala {
+  font-family: var(--font-sinhala) !important;
+  text-transform: none !important;
+  font-style: normal !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/40;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+/* Leeroy Circle Mask */
+.circle-mask {
+  border-radius: 50%;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Luxury Card */
+.luxury-card {
+  @apply bg-background border border-border rounded-3xl transition-all duration-500 hover:border-primary/20 hover:shadow-[0_10px_40px_rgba(16,185,129,0.03)];
+}
+
+/* Decorative grid */
+.bg-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+}
+

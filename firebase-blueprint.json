@@ -1,0 +1,230 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "student", "general"] },
+        "name": { "type": "string" },
+        "yearId": { "type": "string" },
+        "class": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "studentId": { "type": "string" },
+        "school": { "type": "string" },
+        "hasSeenId": { "type": "boolean" }
+      },
+      "required": ["uid", "role"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record with payment and view history",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "yearId": { "type": "string" },
+        "class": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "studentId": { "type": "string" },
+        "indexNumber": { "type": "string" },
+        "nic": { "type": "string" },
+        "school": { "type": "string" },
+        "registeredAt": { "type": "string" },
+        "payments": { "type": "object" },
+        "videoViews": { "type": "object" },
+        "hasSeenId": { "type": "boolean" }
+      }
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Lesson content with video link",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "videoType": { "type": "string" },
+        "visibility": { "type": "string", "enum": ["private", "unlisted"] },
+        "thumbnailUrl": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "maxViews": { "type": "number" },
+        "isSafeZone": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "OnlineClass": {
+      "title": "Online Class",
+      "description": "Live class session information",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "link": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "ended"] }
+      }
+    },
+    "PaperResult": {
+      "title": "Paper Result",
+      "description": "Exam results for students",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "marks": { "type": "number" },
+        "rank": { "type": "number" },
+        "paperName": { "type": "string" },
+        "date": { "type": "string" }
+      }
+    },
+    "AuthorizedAdmin": {
+      "title": "Authorized Admin",
+      "description": "Admins authorized to log in",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "password": { "type": "string" }
+      }
+    },
+    "AuthorizedPri": {
+      "title": "Authorized Private User",
+      "description": "Users authorized to manage marks (PRI access)",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "AcademicYear": {
+      "title": "Academic Year",
+      "description": "Educational years (e.g. 2026, 2027)",
+      "type": "object",
+      "properties": {
+        "year": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["year"]
+    },
+    "Recording": {
+      "title": "Recording",
+      "description": "Recorded class video",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "visibility": { "type": "string", "enum": ["private", "unlisted"] },
+        "maxViews": { "type": "number" },
+        "yearId": { "type": "string" },
+        "publishDate": { "type": "string" },
+        "isSafeZone": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "videoUrl", "yearId", "publishDate"]
+    }
+  },
+  "firestore": {
+    "academicYears": {
+      "schema": "AcademicYear",
+      "description": "Collection of academic years"
+    },
+    "recordings": {
+      "schema": "Recording",
+      "description": "Collection of class recordings"
+    },
+    "users": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "students": {
+      "schema": "Student",
+      "description": "Student records"
+    },
+    "lessons": {
+      "schema": "Lesson",
+      "description": "Lessons"
+    },
+    "onlineClasses": {
+      "schema": "OnlineClass",
+      "description": "Online classes"
+    },
+    "paperResults": {
+      "schema": "PaperResult",
+      "description": "Paper results"
+    },
+    "authorizedAdmins": {
+      "schema": "AuthorizedAdmin",
+      "description": "Authorized admins"
+    },
+    "authorizedPri": {
+      "schema": "AuthorizedPri",
+      "description": "Authorized PRI users for marks management"
+    },
+    "home_content": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "teacherName": { "type": "string" },
+          "teacherMethodology": { "type": "string" },
+          "teacherImageUrl": { "type": "string" },
+          "teacherHeroUrl": { "type": "string" },
+          "teacherAboutUrl": { "type": "string" },
+          "aboutTitle": { "type": "string" },
+          "aboutSubtitle": { "type": "string" },
+          "aboutRichText": { "type": "string" },
+          "aboutCtaText": { "type": "string" },
+          "aboutCtaUrl": { "type": "string" },
+          "processTitle": { "type": "string" },
+          "processSubtitle": { "type": "string" },
+          "processSteps": { "type": "array" },
+          "specialTitle": { "type": "string" },
+          "specialSubtitle": { "type": "string" },
+          "specialDesc": { "type": "string" },
+          "specialFeatures": { "type": "array" },
+          "telegramTitle": { "type": "string" },
+          "telegramSubtitle": { "type": "string" },
+          "telegramChannels": { "type": "array" },
+          "teacherBioTitle": { "type": "string" },
+          "teacherBioText": { "type": "string" },
+          "teacherVideoUrl": { "type": "string" },
+          "teacherVideoThumbnail": { "type": "string" },
+          "heroSlides": { "type": "array" },
+          "galleryTitle": { "type": "string" },
+          "gallerySubtitle": { "type": "string" },
+          "contactTitle": { "type": "string" },
+          "contactSubtitle": { "type": "string" },
+          "contactAddress": { "type": "string" },
+          "contactPhone": { "type": "string" },
+          "contactEmail": { "type": "string" },
+          "contactWorkingHours": { "type": "string" },
+          "facebookUrl": { "type": "string" },
+          "youtubeUrl": { "type": "string" },
+          "whatsappUrl": { "type": "string" },
+          "instagramUrl": { "type": "string" },
+          "linkedinUrl": { "type": "string" },
+          "gallerySliderDuration": { "type": "number" }
+        }
+      },
+      "description": "Home page content"
+    },
+    "home_posts": {
+      "schema": "object",
+      "description": "Home page posts"
+    },
+    "home_videos": {
+      "schema": "object",
+      "description": "Home page videos"
+    },
+    "counters": {
+      "schema": "object",
+      "description": "System counters"
+    }
+  }
+}

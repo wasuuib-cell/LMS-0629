@@ -1,0 +1,10 @@
+{
+  "projectId": "cbpolityacademy",
+  "appId": "1:432884872737:web:8e4d6466a539a67a2ed560",
+  "apiKey": "AIzaSyALNrkjFc2rNjV6DTbzlHzommJ4dWMiR5s",
+  "authDomain": "cbpolityacademy.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "cbpolityacademy.firebasestorage.app",
+  "messagingSenderId": "432884872737",
+  "measurementId": "G-61KQYDR46Y"
+}
