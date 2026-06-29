@@ -3037,7 +3037,7 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
               <button onClick={() => setShowZoomSync(false)} className="px-6 py-3 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-colors">
                 Cancel
               </button>
-              <button onClick={handleSaveZoomMessage} className="px-6 py-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">
+              <button onClick={handleSaveZoomMessage} className="px-6 py-3 rounded-xl text-xs font-bold bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/25">
                 Save & Broadcast
               </button>
             </div>
