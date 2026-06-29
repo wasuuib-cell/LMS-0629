@@ -25,7 +25,12 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
   const [paperResults, setPaperResults] = useState<PaperResult[]>([]);
   const [authorizedAdmins, setAuthorizedAdmins] = useState<any[]>([]);
   const [priUsers, setPriUsers] = useState<any[]>([]);
+  const [cmUsers, setCmUsers] = useState<any[]>([]);
   const [newPriEmail, setNewPriEmail] = useState('');
+  const [newCmEmail, setNewCmEmail] = useState('');
+  const [activeSettingsTab, setActiveSettingsTab] = useState('batches');
+  const [courses, setCourses] = useState<any[]>([]);
+  const [newCourse, setNewCourse] = useState({ name: '', fee: '', yearId: '' });
 
   useEffect(() => {
         const unsubBooks = onSnapshot(collection(db, 'books'), (snapshot) => {
@@ -34,7 +39,13 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
     const unsubPri = onSnapshot(collection(db, 'authorizedPri'), (snapshot) => {
       setPriUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
-    return () => { unsubPri(); unsubBooks(); };
+    const unsubCM = onSnapshot(collection(db, 'authorizedCM'), (snapshot) => {
+      setCmUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    const unsubCourses = onSnapshot(collection(db, 'courses'), (snapshot) => {
+      setCourses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => { unsubPri(); unsubBooks(); unsubCM(); unsubCourses(); };
   }, []);
 
   const handleAddPriUser = async () => {
@@ -48,6 +59,33 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
       setNewPriEmail('');
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'authorizedPri');
+    }
+  };
+
+  const handleAddCmUser = async () => {
+    if (!newCmEmail) return;
+    try {
+      const email = newCmEmail.toLowerCase().trim();
+      await setDoc(doc(db, 'authorizedCM', email), {
+        email,
+        createdAt: serverTimestamp()
+      });
+      setNewCmEmail('');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'authorizedCM');
+    }
+  };
+
+  const handleAddCourse = async () => {
+    if (!newCourse.name || !newCourse.fee || !newCourse.yearId) return;
+    try {
+      await addDoc(collection(db, 'courses'), {
+        ...newCourse,
+        createdAt: serverTimestamp()
+      });
+      setNewCourse({ name: '', fee: '', yearId: '' });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'courses');
     }
   };
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
@@ -2757,11 +2795,168 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
     </div>
   );
 
+  const renderCourses = () => (
+    <div className="space-y-12 pb-24">
+      <div className="bg-white border border-slate-200 p-12 rounded-[40px] shadow-sm">
+        <h3 className="text-2xl font-black mb-10 text-slate-900 flex items-center gap-4 uppercase italic tracking-tighter">
+          <BookOpen className="w-7 h-7 text-primary/40" /> Manage Classes & Fees
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label className="text-[10px] text-slate-400 uppercase font-black tracking-[0.3em] px-1 italic">Class Name</label>
+            <input 
+              type="text" 
+              placeholder="e.g. 2026 Theory" 
+              value={newCourse.name} 
+              onChange={e => setNewCourse({...newCourse, name: e.target.value})} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 text-xs font-bold tracking-wider placeholder:text-slate-300 focus:outline-none focus:border-primary/30 transition-all" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] text-slate-400 uppercase font-black tracking-[0.3em] px-1 italic">Monthly Fee (LKR)</label>
+            <input 
+              type="number" 
+              placeholder="e.g. 3500" 
+              value={newCourse.fee} 
+              onChange={e => setNewCourse({...newCourse, fee: e.target.value})} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 text-xs font-bold tracking-wider placeholder:text-slate-300 focus:outline-none focus:border-primary/30 transition-all" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] text-slate-400 uppercase font-black tracking-[0.3em] px-1 italic">Target Batch (Year)</label>
+            <select 
+              value={newCourse.yearId} 
+              onChange={e => setNewCourse({...newCourse, yearId: e.target.value})} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 text-xs font-bold focus:outline-none focus:border-primary/30 transition-all appearance-none cursor-pointer"
+            >
+              <option value="">Select Year</option>
+              {academicYears.map(y => <option key={y.id} value={y.id}>{y.year}</option>)}
+            </select>
+          </div>
+        </div>
+        <button onClick={handleAddCourse} className="mt-8 w-full bg-primary text-white font-black uppercase italic tracking-[0.2em] py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all text-sm shadow-2xl shadow-primary/20">
+          CREATE CLASS PROTOCOL
+        </button>
+      </div>
+
+      <div className="bg-white border border-slate-200 shadow-sm rounded-[40px] overflow-hidden">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic border-b border-slate-100">
+              <th className="px-10 py-6">CLASS_ID</th>
+              <th className="px-10 py-6">FEE_STRUCTURE</th>
+              <th className="px-10 py-6">BATCH_CORE</th>
+              <th className="px-10 py-6 text-right">PROTOCOLS</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {courses.map(c => (
+              <tr key={c.id} className="hover:bg-slate-50/50 transition-colors group">
+                <td className="px-10 py-8 text-sm font-black text-slate-900 uppercase tracking-tight italic">{c.name}</td>
+                <td className="px-10 py-8 text-sm font-black text-slate-900 uppercase tracking-tight italic">Rs. {c.fee}</td>
+                <td className="px-10 py-8 text-[10px] font-black text-primary uppercase tracking-widest italic">{academicYears.find(y => y.id === c.yearId)?.year || 'N/A'}</td>
+                <td className="px-10 py-8 text-right">
+                  <button onClick={() => handleDelete('courses', c.id)} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all group-hover:scale-110 shadow-sm">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderCMManagement = () => (
+    <div className="space-y-12 pb-24">
+      <div className="bg-white border border-slate-200 p-12 rounded-[40px] shadow-sm">
+        <h3 className="text-2xl font-black mb-10 text-slate-900 flex items-center gap-4 uppercase italic tracking-tighter">
+          <ShieldCheck className="w-7 h-7 text-primary/40" /> Card Marker Access
+        </h3>
+        <p className="text-slate-500 font-bold text-sm mb-8 leading-relaxed max-w-2xl">
+          Authorized personnel can access the Card Mark system using their email without having full administrative privileges.
+        </p>
+        <div className="flex gap-4">
+          <input 
+            type="email" 
+            placeholder="ENTER AUTHORIZED EMAIL..." 
+            value={newCmEmail} 
+            onChange={e => setNewCmEmail(e.target.value)} 
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 text-sm font-black uppercase tracking-wider placeholder:text-slate-300 focus:outline-none focus:border-primary/30 transition-all" 
+          />
+          <button onClick={handleAddCmUser} className="bg-primary text-white font-black uppercase italic tracking-[0.2em] px-10 py-5 rounded-2xl hover:scale-105 active:scale-95 transition-all text-sm shadow-2xl shadow-primary/20">
+            Authorize Node
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cmUsers.map(user => (
+          <div key={user.id} className="bg-white border border-slate-200 p-8 rounded-[35px] shadow-sm group hover:border-primary/20 transition-all relative overflow-hidden">
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                <Users className="w-6 h-6 text-slate-400" />
+              </div>
+              <button 
+                onClick={() => handleDelete('authorizedCM', user.id)}
+                className="p-3 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="relative z-10">
+              <h4 className="text-lg font-black text-slate-900 tracking-tight">{user.email}</h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic mt-2">Card Marker Level</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderSettings = () => (
+    <div className="space-y-12">
+      <div className="flex overflow-x-auto hide-scrollbar gap-4 pb-4">
+        {[
+          { id: 'batches', label: 'Batches (Years)' },
+          { id: 'courses', label: 'Classes & Fees' },
+          { id: 'admins', label: 'Sub Admins' },
+          { id: 'pri', label: 'PRI Access' },
+          { id: 'cm', label: 'Card Markers' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveSettingsTab(tab.id)}
+            className={`whitespace-nowrap px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] italic text-xs transition-all ${
+              activeSettingsTab === tab.id 
+                ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105'
+                : 'bg-white border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={activeSettingsTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+          {activeSettingsTab === 'batches' && renderAcademicYears()}
+          {activeSettingsTab === 'courses' && renderCourses()}
+          {activeSettingsTab === 'admins' && renderAdmins()}
+          {activeSettingsTab === 'pri' && renderPriManagement()}
+          {activeSettingsTab === 'cm' && renderCMManagement()}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+
   return (
     <DashboardLayout role="admin" activeTab={activeTab} setActiveTab={setActiveTab} profile={profile}>
       <AnimatePresence mode="wait">
         <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
           {activeTab === 'cardmark' && <CardMarkTab />}
+          {activeTab === 'settings' && renderSettings()}
           {activeTab === 'books' && renderBooks()}
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'home' && renderHomeManager()}

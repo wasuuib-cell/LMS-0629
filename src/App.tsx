@@ -19,6 +19,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ 
 const GeneralDashboard = lazy(() => import('./pages/GeneralDashboard').then(m => ({ default: m.GeneralDashboard })));
 const PriLogin = lazy(() => import('./pages/PriLogin').then(m => ({ default: m.PriLogin })));
 const PriDashboard = lazy(() => import('./pages/PriDashboard').then(m => ({ default: m.PriDashboard })));
+const CMLogin = lazy(() => import('./pages/CMLogin').then(m => ({ default: m.CMLogin })));
+const CMDashboard = lazy(() => import('./pages/CMDashboard').then(m => ({ default: m.CMDashboard })));
 
 import { PublicLayout } from './components/PublicLayout';
 
@@ -158,6 +160,15 @@ export default function App() {
                   )
                 } />
 
+                {/* CM Route */}
+                <Route path="/cm-login" element={<PublicLayout><CMLogin /></PublicLayout>} />
+                <Route path="/cm" element={
+                  user && (profile?.role === 'cm' || profile?.role === 'admin') ? (
+                    <CMDashboard profile={profile!} />
+                  ) : (
+                    <PublicLayout><CMLogin /></PublicLayout>
+                  )
+                } />
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

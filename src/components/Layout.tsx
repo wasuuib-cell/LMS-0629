@@ -72,10 +72,6 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children, role, activeT
     { id: 'cardmark', label: 'Card Mark', icon: CheckSquare },
     { id: 'marks', label: t('dash.tabs.marks'), icon: BarChart3 },
     { id: 'settings', label: t('dash.admin.settings') || 'Settings', icon: Settings },
-    { id: 'courses', label: 'Classes & Fees', icon: BookOpen, hidden: true },
-    { id: 'batches', label: t('dash.tabs.batches'), icon: Calendar, hidden: true },
-    { id: 'pri', label: t('dash.admin.priAccess') || 'PRI Access', icon: ShieldCheck, hidden: true },
-    { id: 'admins', label: t('dash.admin.manageAdmins'), icon: ShieldCheck, hidden: true },
     ...(profile?.email === 'wasuuib@gmail.com' ? [{ id: 'youtube', label: 'YouTube Sync', icon: Video, hidden: true }] : []),
     { id: 'general-redirect', label: 'General Dashboard', icon: Database, hidden: true },
   ];
@@ -103,9 +99,14 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children, role, activeT
     { id: 'students', label: t('dash.admin.students'), icon: Users },
   ];
 
-  const tabs = role === 'admin' 
-    ? (window.location.pathname.startsWith('/general') ? generalTabs : adminTabs) 
-    : role === 'pri' ? priTabs : role === 'general' ? generalTabs : studentTabs;
+  const cmTabs = [
+    { id: 'cardmark', label: 'Card Mark', icon: CheckSquare },
+  ];
+
+  const tabs = role === 'admin' ? (window.location.pathname.startsWith('/general') ? generalTabs : adminTabs)
+    : role === 'pri' ? priTabs 
+    : role === 'cm' ? cmTabs
+    : role === 'general' ? generalTabs : studentTabs;
 
   const handleTabClick = (tabId: string) => {
     if (tabId === 'home-redirect') {
