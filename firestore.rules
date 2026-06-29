@@ -24,8 +24,8 @@ service cloud.firestore {
     // Students can create their profile. They can read/update their own data. Admins have full access. CMs can read.
     match /students/{studentId} {
       allow create: if request.auth != null;
-      allow read: if request.auth != null && (request.auth.uid == resource.data.uid || isAdmin() || isCardMarker());
-      allow update: if request.auth != null && (request.auth.uid == resource.data.uid || isAdmin());
+      allow read: if request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.email.lower() == resource.data.email || isAdmin() || isCardMarker());
+      allow update: if request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.email.lower() == resource.data.email || isAdmin());
       allow delete: if isAdmin();
     }
     
