@@ -984,7 +984,7 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <button
             onClick={() => setShowZoomSync(true)}
-            className="glass p-8 rounded-[40px] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 text-left flex flex-col justify-center cursor-pointer"
+            className="p-8 rounded-[40px] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 text-left flex flex-col justify-center cursor-pointer"
           >
             <div className="flex items-center gap-6 mb-2 relative z-10">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
