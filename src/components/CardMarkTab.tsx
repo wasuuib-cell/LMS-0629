@@ -136,7 +136,8 @@ export const CardMarkTab: React.FC = () => {
     if (url && url.includes('drive.google.com/uc')) {
       const match = url.match(/id=([^&]+)/);
       if (match && match[1]) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+        // Use lh3.googleusercontent.com which bypasses Drive embedding blocks
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
       }
     }
     return url;
