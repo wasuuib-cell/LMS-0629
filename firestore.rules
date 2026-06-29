@@ -47,7 +47,11 @@ service cloud.firestore {
     match /books/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /home_posts/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /home_videos/{docId} { allow read: if true; allow write: if isAdmin(); }
-    
+    match /home_content/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /counters/{docId} { allow read: if true; allow write: if true; } // Need write access for registration
+    match /settings/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /test/{docId} { allow read: if true; allow write: if isAdmin(); }
+
     // Lessons, Classes, Recordings: Must be logged in to view, only admin can write.
     match /lessons/{docId} { allow read: if request.auth != null; allow write: if isAdmin(); }
     match /onlineClasses/{docId} { allow read: if request.auth != null; allow write: if isAdmin(); }

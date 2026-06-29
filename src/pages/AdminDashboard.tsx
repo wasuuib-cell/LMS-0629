@@ -167,21 +167,14 @@ export const AdminDashboard: React.FC<{ profile: UserProfile }> = ({ profile }) 
   const [newStudent, setNewStudent] = useState({ name: '', email: '', class: '', whatsapp: '', address: '', studentId: '', school: '', nic: '', yearId: '' });
   const [newPaperResult, setNewPaperResult] = useState({ paperNumber: 1, studentIndex: '', marks: 0, yearId: '' });
   const [newYear, setNewYear] = useState({ year: '' });
-  const [newRecording, setNewRecording] = useState<{
-    title: string;
-    videoUrl: string;
-    visibility: 'private' | 'unlisted';
-    maxViews: number;
-    yearId: string;
-    publishDate: string;
-    isSafeZone: boolean;
-  }>({ 
+  const [newRecording, setNewRecording] = useState<{ title: string; videoUrl: string; videoType: 'vimeo' | 'youtube' | 'gdrive' | 'm3u8'; maxViews: number | ''; yearId: string; publishDate: string; visibility: 'private' | 'public'; isSafeZone: boolean }>({
     title: '', 
     videoUrl: '', 
-    visibility: 'private', 
+    videoType: 'vimeo', 
     maxViews: 2, 
     yearId: '', 
     publishDate: new Date().toISOString().split('T')[0],
+    visibility: 'private',
     isSafeZone: true
   });
   const [selectedRecordingYear, setSelectedRecordingYear] = useState<string>('all');

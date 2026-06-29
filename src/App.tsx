@@ -79,9 +79,15 @@ export default function App() {
                 const { getDoc, doc } = await import('firebase/firestore');
                 const priDoc = await getDoc(doc(db, 'authorizedPri', u.email.toLowerCase()));
                 if (priDoc.exists()) {
-                  setProfile({ uid: u.uid, email: u.email, role: 'pri' as any });
+                  setProfile({ uid: u.uid, email: u.email, role: 'pri' });
                 } else {
-                  setProfile(null);
+                  // Also check for CM (Card Marker) users
+                  const cmDoc = await getDoc(doc(db, 'authorizedCM', u.email.toLowerCase()));
+                  if (cmDoc.exists()) {
+                    setProfile({ uid: u.uid, email: u.email, role: 'cm' });
+                  } else {
+                    setProfile(null);
+                  }
                 }
               } catch (e) {
                 console.error("PRI check failed", e);
